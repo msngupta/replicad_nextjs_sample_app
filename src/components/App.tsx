@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from "react";
-
 import FileSaver from "file-saver";
 import { wrap } from "comlink";
+import ThreeContext from "./ThreeContext";
+import ReplicadMesh from "./ReplicadMesh";
+import {CadWorker,cadWorker} from "./worker"; 
 
-import ThreeContext from "./ThreeContext.jsx";
-import ReplicadMesh from "./ReplicadMesh.jsx";
 
-import cadWorker from "./worker.js?worker";
-const cad = wrap(new cadWorker());
+const cad = cadWorker;
 
-export default function ReplicadApp() {
-  const [size, setSize] = useState(5);
+interface MeshData {
+  edges: any; // Define the appropriate type for edges
+  faces: any; // Define the appropriate type for faces
+}
+
+export default function ReplicadApp(): JSX.Element {
+  const [size, setSize] = useState<number>(5);
+  const [mesh, setMesh] = useState<MeshData | null>(null);
 
   const downloadModel = async () => {
     const blob = await cad.createBlob(size);
     FileSaver.saveAs(blob, "thing.stl");
   };
 
-  const [mesh, setMesh] = useState(null);
-
   useEffect(() => {
-    cad.createMesh(size).then((m) => setMesh(m));
+    cad.createMesh(size).then((m: MeshData) => setMesh(m));
   }, [size]);
 
   return (
