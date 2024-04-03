@@ -1,11 +1,11 @@
 import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
+import { Object3D } from "three";
 
 // We change the default orientation - threejs tends to use Y are the height,
 // while replicad uses Z. This is mostly a representation default.
-// THREE.Object3D.DefaultUp.set(0, 0, 1);
+// Object3D.DefaultUp.set(0, 0, 1);
 
 // This is the basics to render a nice looking model user react-three-fiber
 //

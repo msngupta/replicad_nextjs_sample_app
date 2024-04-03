@@ -1,30 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import FileSaver from "file-saver";
-import { wrap } from "comlink";
-import ThreeContext from "./ThreeContext";
-import ReplicadMesh from "./ReplicadMesh";
-import {CadWorker,cadWorker} from "./worker"; 
 
+import ThreeContext from "./ThreeContext.jsx";
+import ReplicadMesh from "./ReplicadMesh.jsx";
+import ReplicadComp from "./ReplicadComp"; // Import the ReplicadComp component
 
-const cad = cadWorker;
+export default function ReplicadApp() {
+  const [size, setSize] = useState(5);
+  const [mesh, setMesh] = useState(null);
+  const workerApiRef = useRef(null);
 
-interface MeshData {
-  edges: any; // Define the appropriate type for edges
-  faces: any; // Define the appropriate type for faces
-}
-
-export default function ReplicadApp(): JSX.Element {
-  const [size, setSize] = useState<number>(5);
-  const [mesh, setMesh] = useState<MeshData | null>(null);
-
-  const downloadModel = async () => {
-    const blob = await cad.createBlob(size);
-    FileSaver.saveAs(blob, "thing.stl");
-  };
+  const setWorkerApiRefCallback = useCallback((api) => {
+    workerApiRef.current = api;
+    if (api) {
+      api.createMesh(size).then((m) => setMesh(m));
+    }
+  }, [size]);
 
   useEffect(() => {
-    cad.createMesh(size).then((m: MeshData) => setMesh(m));
+    if (workerApiRef.current) {
+      workerApiRef.current.createMesh(size).then((m) => setMesh(m));
+    }
   }, [size]);
+
+  const downloadModel = async () => {
+    if (!workerApiRef.current) return;
+    const blob = await workerApiRef.current.createBlob(size);
+    FileSaver.saveAs(blob, "thing.stl");
+  };
 
   return (
     <main>
@@ -46,7 +49,7 @@ export default function ReplicadApp(): JSX.Element {
           target="_blank"
           rel="noopener noreferrer"
         >
-          on the GitHub repository
+          on GitHub
         </a>
       </p>
       <section
@@ -85,6 +88,8 @@ export default function ReplicadApp(): JSX.Element {
           </div>
         )}
       </section>
+      <ReplicadComp setWorkerApiRef={setWorkerApiRefCallback} />
+
     </main>
   );
 }
